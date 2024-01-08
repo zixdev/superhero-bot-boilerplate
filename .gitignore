@@ -1,0 +1,11 @@
+node_modules
+.env
+cache.json
+dist
+matrix-dev-files
+.idea
+
+# E2EE/Cache files
+data/*
+# make sure data exists to avoid potential problems
+!data/.empty
