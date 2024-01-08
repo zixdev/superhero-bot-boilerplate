@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Introduction](#Introduction)
+- [Prerequisites](#Prerequisites)
 - [Getting started](#Getting-started)
 - [How to](#How-to)
 - [End-to-end encryption](#End-to-end-encryption)
