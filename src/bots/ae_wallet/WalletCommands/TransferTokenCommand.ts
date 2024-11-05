@@ -109,9 +109,9 @@ export class TransferTokenCommand extends BotCommand {
       );
     }
 
-    if (args.to !== "to") {
-      throw new TransferError("");
-    }
+    // if (args.to !== "to") {
+    //   throw new TransferError("");
+    // }
 
     // check if recipient is set
     if (!args.recipient) {

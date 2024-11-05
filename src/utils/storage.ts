@@ -1,9 +1,10 @@
 import { SimpleFsStorageProvider } from "matrix-bot-sdk";
+import { BOT_STORAGE_FILE } from "../config";
 
-if (!process.env.BOT_STORAGE_FILE) {
+if (!BOT_STORAGE_FILE) {
   throw new Error("Please set BOT_STORAGE_FILE");
 }
 
 export const fileStorageProvider = new SimpleFsStorageProvider(
-  process.env.BOT_STORAGE_FILE,
+  BOT_STORAGE_FILE,
 );
