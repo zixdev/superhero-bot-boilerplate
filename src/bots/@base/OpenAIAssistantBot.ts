@@ -75,7 +75,7 @@ export abstract class OpenAIAssistantBot extends BaseBot {
     return threadId;
   }
 
-  async onMessage(sender: ISender, message: IMessage, onReply = (reply: string) => {}): Promise<string | null> {
+  async onMessage(sender: ISender, message: IMessage, onReply = (reply: string) => reply): Promise<string | null> {
     const threadId = await this.getRoomThreadId(message.chatId);
     const assistant = await this.getAssistant();
     await this.openAI.beta.threads.messages.create(
