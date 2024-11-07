@@ -85,7 +85,12 @@ export abstract class OpenAIAssistantBot extends BaseBot {
     return threadId;
   }
 
-  async onMessage(sender: ISender, message: IMessage, onReply = (reply: string) => reply): Promise<string | null> {
+  async onMessage(
+    sender: ISender, 
+    message: IMessage, 
+    onReply = (reply: string) => reply,
+    onTyping = (isTyping: boolean) => {},
+  ): Promise<string | null> {
     const senderWalletAddress = VerifiedAccounts.getVerifiedAccountOrUndefined(
       sender.id.toString(),
     );
@@ -99,7 +104,16 @@ export abstract class OpenAIAssistantBot extends BaseBot {
         role: 'user',
         content: message.text,
       },
-    )
+    );
+    const isBotMentioned = this.chatAdapters.some((adapter: any) =>
+      message.taggedAccounts?.some((account) =>
+        adapter.options.username === account.name
+      )
+    );
+    if (!sender.isDirect && !isBotMentioned) {
+      return null;
+    }
+    onTyping?.(true);
     const run = await this.openAI.beta.threads.runs.createAndPoll(
       threadId,
       assistant,
@@ -158,6 +172,7 @@ export abstract class OpenAIAssistantBot extends BaseBot {
       console.log(run.status);
       console.log('run', JSON.stringify(run, null, 2));
     }
+    onTyping?.(false);
     return null
   }
 }
