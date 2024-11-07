@@ -153,6 +153,7 @@ export class MatrixAdapter extends BaseAdapter {
 
       this.bot.onMessage(sender, message, (reply) => {
         this.client.replyHtmlNotice(roomId, event, reply);
+        return reply;
       });
     });
 

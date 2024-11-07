@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { FunctionTool } from "openai/resources/beta/assistants";
 import { RunCreateParamsNonStreaming } from "openai/resources/beta/threads/runs/runs";
+import showdown from 'showdown';
 import { OPENAI_API_KEY } from "../../config";
 import { IMessage, ISender } from "../../types";
 import { fileStorageProvider } from "../../utils/storage";
@@ -8,6 +9,7 @@ import { BaseBot, BaseBotOptions } from "./BaseBot";
 
 export abstract class OpenAIAssistantBot extends BaseBot {
   openAI: OpenAI;
+  markdownConverter: showdown.Converter;
 
 
   constructor(options: BaseBotOptions) {
@@ -15,6 +17,8 @@ export abstract class OpenAIAssistantBot extends BaseBot {
     this.openAI = new OpenAI({
       apiKey: OPENAI_API_KEY,
     });
+
+    this.markdownConverter = new showdown.Converter();
   }
 
   getAssistantTools(): Array<FunctionTool> {
@@ -76,6 +80,8 @@ export abstract class OpenAIAssistantBot extends BaseBot {
   }
 
   async onMessage(sender: ISender, message: IMessage, onReply = (reply: string) => reply): Promise<string | null> {
+
+
     const threadId = await this.getRoomThreadId(message.chatId);
     const assistant = await this.getAssistant();
     await this.openAI.beta.threads.messages.create(
@@ -101,7 +107,7 @@ export abstract class OpenAIAssistantBot extends BaseBot {
       for (const reply of messages.data.reverse()) {
         console.log('AI REPLU::', JSON.stringify(reply, null, 2))
         console.log(`${reply.role} > ${reply.content[0].text.value}`);
-        onReply(reply.content[0].text.value);
+        onReply(this.markdownConverter.makeHtml(reply.content[0].text.value));
         break;
       }
     } else if (run.status === 'requires_action' && run.required_action) {
