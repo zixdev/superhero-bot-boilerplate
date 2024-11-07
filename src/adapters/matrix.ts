@@ -1,17 +1,21 @@
-import { AutojoinRoomsMixin, MatrixClient, MatrixAuth } from "matrix-bot-sdk";
+import { AutojoinRoomsMixin, MatrixAuth, MatrixClient } from "matrix-bot-sdk";
+import OpenAI from 'openai';
 
-import { MATRIX_BOT_HOME_SERVER_URL } from "../config";
-import { IAccount, IChatEvent, IMessage, ISender } from "../types";
-import { fileStorageProvider } from "../utils/storage";
-import { cryptoStorageProvider } from "../utils/cryptoStorage";
-import { BaseAdapter, BaseAdapterOptions } from "./base";
-import {
-  setRoomMetadata,
-  getRoomMetadata,
-  IRoomMetadata,
-  IMDirect,
-} from "../libs/RoomCache";
 import { VerifiedAccounts } from "../backend/VerifiedAccounts";
+import {
+  MATRIX_BOT_HOME_SERVER_URL,
+  OPENAI_API_KEY
+} from "../config";
+import {
+  getRoomMetadata,
+  IMDirect,
+  IRoomMetadata,
+  setRoomMetadata,
+} from "../libs/RoomCache";
+import { IAccount, IChatEvent, IMessage, ISender } from "../types";
+import { cryptoStorageProvider } from "../utils/cryptoStorage";
+import { fileStorageProvider } from "../utils/storage";
+import { BaseAdapter, BaseAdapterOptions } from "./base";
 
 type MatrixAdapterOptions = BaseAdapterOptions & {
   password?: string;
@@ -21,6 +25,7 @@ type MatrixAdapterOptions = BaseAdapterOptions & {
 export class MatrixAdapter extends BaseAdapter {
   client: MatrixClient;
   options: MatrixAdapterOptions;
+
 
   constructor(options: MatrixAdapterOptions) {
     super(options);
@@ -119,8 +124,10 @@ export class MatrixAdapter extends BaseAdapter {
              */
             const id = user.replace(/<a href=".*?#\/user\//, "").split('">')[0];
 
-            const address = VerifiedAccounts.getVerifiedAccountOrException(id);
-            messageBody = messageBody.replace(name, address);
+            const address = VerifiedAccounts.getVerifiedAccountOrUndefined(id)
+            if (address) {
+              messageBody = messageBody.replace(name, address);
+            }
 
             taggedAccounts.push({
               name,
@@ -146,11 +153,18 @@ export class MatrixAdapter extends BaseAdapter {
         roomName: roomMetadata.roomName,
       };
 
-      const reply = await this.bot.onMessage(sender, message);
-
-      if (reply) {
-        await this.client.replyHtmlNotice(roomId, event, reply);
-      }
+      this.bot.onMessage(
+        sender,
+        message,
+        (reply) => {
+          this.client.replyHtmlNotice(roomId, event, reply);
+          this.client.setTyping(roomId, false);
+          return reply;
+        },
+        (isTyping) => {
+          this.client.setTyping(roomId, isTyping);
+        }
+      );
     });
 
     this.client.on("room.join", async (roomId: string, event: IChatEvent) => {
@@ -181,7 +195,7 @@ export class MatrixAdapter extends BaseAdapter {
     if (!roomMetadata || (!roomMetadata.isDirect && !roomMetadata.roomName)) {
       const directRooms =
         await this.client.getAccountData<IMDirect>("m.direct");
-      const isDirect = Object.values(directRooms).some((rooms) =>
+      let isDirect = Object.values(directRooms).some((rooms) =>
         rooms.includes(roomId),
       );
       const roomNameStateEvent = await this.client
@@ -192,6 +206,19 @@ export class MatrixAdapter extends BaseAdapter {
         isDirect,
         roomName: roomNameStateEvent?.name,
       };
+
+      // check if the bot is the room creator, then we can assume its a direct room
+      if (!isDirect && !roomNameStateEvent) {
+        const roomCreateEvent = await this.client.getRoomStateEvent(
+          roomId,
+          "m.room.create",
+          "",
+        );
+
+        if (roomCreateEvent?.creator === (await this.client.getUserId())) {
+          isDirect = true;
+        }
+      }
       setRoomMetadata(roomId, roomMetadata);
     }
 

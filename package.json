@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@aeternity/aepp-calldata": "^1.5.1",
-    "@aeternity/aepp-sdk": "^13.2.2",
+    "@aeternity/aepp-sdk": "^13.3.3",
     "aeternity-fungible-token": "git+https://git@github.com/aeternity/aeternity-fungible-token#v2.2.0",
     "bignumber.js": "^9.1.2",
     "body-parser": "^1.20.2",
@@ -27,6 +27,8 @@
     "dotenv": "16.3.1",
     "express": "^4.18.2",
     "matrix-bot-sdk": "^0.7.0",
+    "openai": "^4.71.0",
+    "showdown": "^2.1.0",
     "superhero-bot-contracts": "git+ssh://git@github.com/superhero-com/superhero-bot-contracts#main",
     "typescript": "^5.2.2",
     "uuid": "^9.0.1"
@@ -35,6 +37,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.9.4",
+    "@types/showdown": "^2.0.6",
     "husky": "^8.0.3",
     "prettier": "3.1.0"
   }
