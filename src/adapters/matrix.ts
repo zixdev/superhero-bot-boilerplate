@@ -25,7 +25,7 @@ type MatrixAdapterOptions = BaseAdapterOptions & {
 export class MatrixAdapter extends BaseAdapter {
   client: MatrixClient;
   options: MatrixAdapterOptions;
-  openAI: OpenAI;
+
 
   constructor(options: MatrixAdapterOptions) {
     super(options);
@@ -35,10 +35,6 @@ export class MatrixAdapter extends BaseAdapter {
         "No access token provided through environment. Please PERMANENTLY store the access token in an the environment variable.",
       );
     }
-   
-    this.openAI = new OpenAI({
-      apiKey: OPENAI_API_KEY,
-    })
 
     this.options = options;
   }
@@ -155,136 +151,9 @@ export class MatrixAdapter extends BaseAdapter {
         roomName: roomMetadata.roomName,
       };
 
-      const reply = await this.bot.onMessage(sender, message);
-
-      if (reply) {
-        await this.client.replyHtmlNotice(roomId, event, reply);
-      }
-      this.client.setTyping(roomId, true);
-
-      /**
-       * store the thread id with the room id
-       */
-      let threadId = await fileStorageProvider.readValue(`Thread: ${roomId}`)
-
-      if (!threadId) {
-        const thread = await this.openAI.beta.threads.create({
-          metadata: {
-            roomId: roomId,
-          },
-        })
-        console.log('===========')
-        console.log('CREATED NEW THREAD')
-        console.log('===========')
-        console.log('===========')
-        threadId = thread.id
-        fileStorageProvider.storeValue(`Thread: ${roomId}`, threadId)
-      }
-
-      console.log('messageBody::', messageBody)
-      await this.openAI.beta.threads.messages.create(
-        threadId,
-        {
-          role: 'user',
-          content: messageBody,
-        },
-      )
-
-      const assistant = {
-        id: 'asst_KS0vuSbKlM0WaifuNCLvEudY'
-      }
-
-      const tools = Object.values(this.bot.commands).map((command) => {
-        return {
-          type: 'function',
-          function: {
-            name: command.name,
-            description: command.description,
-            parameters: {
-              type: 'object',
-              properties: command.getArguments().reduce((acc, arg) => {
-                acc[arg.name] = {
-                  type: 'string',
-                  description: arg.description,
-                  // required: arg.required,
-                  // example: arg.example,
-                }
-                return acc
-              }, {})
-            },
-          }
-        }
+      this.bot.onMessage(sender, message, (reply) => {
+        this.client.replyHtmlNotice(roomId, event, reply);
       });
-
-      let run = await this.openAI.beta.threads.runs.createAndPoll(
-        threadId,
-        {
-          assistant_id: assistant.id,
-          instructions: `
-          You're Superhero Wallet Bot, you help people understanding more information about aeternity, and get information about their balances
-          `,
-          tools,
-        }
-      );
-
-      if (run.status === 'completed') {
-        const messages = await this.openAI.beta.threads.messages.list(
-          run.thread_id,
-          {
-            order: 'desc',
-            limit: 1,
-          }
-        );
-        for (const message of messages.data.reverse()) {
-          console.log('AI REPLU::', JSON.stringify(message, null, 2))
-          console.log(`${message.role} > ${message.content[0].text.value}`);
-          this.client.replyText(roomId, event, message.content[0].text.value);
-          break;
-        }
-      } else if (run.status === 'requires_action' && run.required_action) {
-        const tool_calls = run.required_action.submit_tool_outputs.tool_calls;
-
-
-        const tool_outputs = []
-        for (const tool_call of tool_calls) {
-          const args = JSON.parse(tool_call.function.arguments);
-
-          const reply = await this.bot.commands[tool_call.function.name].handle(
-            this.bot,
-            sender,
-            message,
-            args,
-            {}
-          )
-
-          if (reply) {
-            await this.client.replyHtmlNotice(roomId, event, reply);
-          }
-          tool_outputs.push({
-            tool_call_id: tool_call.id,
-            output: reply
-          })
-
-
-          console.log('BOT REPLY::', reply)
-        }
-        await this.openAI.beta.threads.runs.submitToolOutputsAndPoll(
-          threadId,
-          run.id,
-          {
-            tool_outputs
-          },
-        );
-        // close run
-        // run = await this.openAI.beta.threads.runs.complete(run.id);
-      } else {
-        console.log('=============');
-        console.log(run.status);
-        console.log('run', JSON.stringify(run, null, 2));
-      }
-
-      this.client.setTyping(roomId, false);
-
     });
 
     this.client.on("room.join", async (roomId: string, event: IChatEvent) => {
