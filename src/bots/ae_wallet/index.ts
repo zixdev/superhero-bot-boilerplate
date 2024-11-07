@@ -1,20 +1,21 @@
 import { AeSdk } from "@aeternity/aepp-sdk";
+import { Router } from "express";
 import { PROTOCOL_AETERNITY } from "../../constants";
-import { BaseBot, BotCommand, BaseBotOptions } from "../@base";
+import { IRoomMetadata } from "../../libs/RoomCache";
+import { IChatEvent } from "../../types";
+import { BaseBotOptions, BotCommand } from "../@base";
+import { OpenAIAssistantBot } from "../@base/OpenAiAssistantBot";
+import { initRouter } from "./callbackRouter";
 import { CheckWalletBalanceCommand } from "./WalletCommands/CheckWalletBalanceCommand";
 import { ConnectWalletCommand } from "./WalletCommands/ConnectWalletCommand";
 import { DisconnectWalletCommand } from "./WalletCommands/DisconnectWalletCommand";
 import { TransferTokenCommand } from "./WalletCommands/TransferTokenCommand";
-import { Router } from "express";
-import { initRouter } from "./callbackRouter";
-import { IChatEvent } from "../../types";
-import { IRoomMetadata } from "../../libs/RoomCache";
 
 type AeWalletBotOptions = BaseBotOptions & {
   aeSdk: AeSdk;
 };
 
-export class AeWalletBot extends BaseBot {
+export class AeWalletBot extends OpenAIAssistantBot {
   aeSdk: AeSdk;
   router = Router();
 
