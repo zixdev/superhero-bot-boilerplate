@@ -52,7 +52,11 @@ export abstract class BaseBot {
     await this.priceRatesHelper.preloadProtocolRates(this.protocol);
   }
 
-  async onMessage(sender: ISender, message: IMessage, onReply = (reply: string) => reply): Promise<string | null> {
+  async onMessage(
+    sender: ISender, 
+    message: IMessage, 
+    onReply = (reply: string) => reply
+  ): Promise<string | null> {
     /**
      * Execute commands first
      */

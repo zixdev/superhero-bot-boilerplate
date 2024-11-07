@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { FunctionTool } from "openai/resources/beta/assistants";
 import { RunCreateParamsNonStreaming } from "openai/resources/beta/threads/runs/runs";
 import showdown from 'showdown';
+import { VerifiedAccounts } from "../../backend/VerifiedAccounts";
 import { OPENAI_API_KEY } from "../../config";
 import { IMessage, ISender } from "../../types";
 import { fileStorageProvider } from "../../utils/storage";
@@ -10,6 +11,9 @@ import { BaseBot, BaseBotOptions } from "./BaseBot";
 export abstract class OpenAIAssistantBot extends BaseBot {
   openAI: OpenAI;
   markdownConverter: showdown.Converter;
+
+  assistantId: string;
+  assistantInstructions: string;
 
 
   constructor(options: BaseBotOptions) {
@@ -45,12 +49,14 @@ export abstract class OpenAIAssistantBot extends BaseBot {
     })
   }
 
-  async getAssistant(): Promise<RunCreateParamsNonStreaming> {
+  async getAssistant(senderAddress?: string): Promise<RunCreateParamsNonStreaming> {
+    let instructions = this.assistantInstructions;
+    if (senderAddress) {
+      instructions += ` Sender Wallet Address: ${senderAddress}`;
+    }
     return {
-      assistant_id: 'asst_KS0vuSbKlM0WaifuNCLvEudY',
-      instructions: `
-      You're Superhero Wallet Bot, you help people understanding more information about aeternity, and get information about their balances
-      `,
+      assistant_id: this.assistantId,
+      instructions,
       tools: this.getAssistantTools(),
     };
   }
@@ -80,10 +86,13 @@ export abstract class OpenAIAssistantBot extends BaseBot {
   }
 
   async onMessage(sender: ISender, message: IMessage, onReply = (reply: string) => reply): Promise<string | null> {
-
-
+    const senderWalletAddress = VerifiedAccounts.getVerifiedAccountOrUndefined(
+      sender.id.toString(),
+    );
     const threadId = await this.getRoomThreadId(message.chatId);
-    const assistant = await this.getAssistant();
+    const assistant = await this.getAssistant(
+      senderWalletAddress,
+    );
     await this.openAI.beta.threads.messages.create(
       threadId,
       {
