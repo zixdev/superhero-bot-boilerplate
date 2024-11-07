@@ -38,8 +38,6 @@ export abstract class OpenAIAssistantBot extends BaseBot {
               acc[arg.name] = {
                 type: 'string',
                 description: arg.description,
-                // required: arg.required,
-                // example: arg.example,
               }
               return acc
             }, {})
@@ -76,9 +74,6 @@ export abstract class OpenAIAssistantBot extends BaseBot {
         roomId: roomId,
       },
     })
-    console.log('===========')
-    console.log('CREATED NEW THREAD')
-    console.log('===========')
     threadId = thread.id
     fileStorageProvider.storeValue(`Thread: ${roomId}`, threadId)
 
