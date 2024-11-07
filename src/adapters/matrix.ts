@@ -184,7 +184,7 @@ export class MatrixAdapter extends BaseAdapter {
     if (!roomMetadata || (!roomMetadata.isDirect && !roomMetadata.roomName)) {
       const directRooms =
         await this.client.getAccountData<IMDirect>("m.direct");
-      const isDirect = Object.values(directRooms).some((rooms) =>
+      let isDirect = Object.values(directRooms).some((rooms) =>
         rooms.includes(roomId),
       );
       const roomNameStateEvent = await this.client
@@ -195,6 +195,19 @@ export class MatrixAdapter extends BaseAdapter {
         isDirect,
         roomName: roomNameStateEvent?.name,
       };
+
+      // check if the bot is the room creator, then we can assume its a direct room
+      if (!isDirect && !roomNameStateEvent) {
+        const roomCreateEvent = await this.client.getRoomStateEvent(
+          roomId,
+          "m.room.create",
+          "",
+        );
+
+        if (roomCreateEvent?.creator === (await this.client.getUserId())) {
+          isDirect = true;
+        }
+      }
       setRoomMetadata(roomId, roomMetadata);
     }
 
