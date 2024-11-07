@@ -10,3 +10,4 @@ export const BOT_STORAGE_FILE =
   process.env.BOT_STORAGE_FILE;
 
 export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+export const BOT_ASSISTANT_ID = process.env.BOT_ASSISTANT_ID;

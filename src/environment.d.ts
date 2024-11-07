@@ -8,5 +8,6 @@ declare namespace NodeJS {
     BOT_ENCRYPTION_DIR?: string;
     ACTIVE_NETWORK?: string;
     BACKEND_CALLBACK_BASE_URL?: string;
+    BOT_ASSISTANT_ID: string
   }
 }

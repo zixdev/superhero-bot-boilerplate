@@ -1,5 +1,6 @@
 import { AeSdk } from "@aeternity/aepp-sdk";
 import { Router } from "express";
+import { BOT_ASSISTANT_ID } from "../../config";
 import { PROTOCOL_AETERNITY } from "../../constants";
 import { IRoomMetadata } from "../../libs/RoomCache";
 import { IChatEvent } from "../../types";
@@ -18,6 +19,13 @@ type AeWalletBotOptions = BaseBotOptions & {
 export class AeWalletBot extends OpenAIAssistantBot {
   aeSdk: AeSdk;
   router = Router();
+
+  assistantId = BOT_ASSISTANT_ID;
+  assistantInstructions = `
+    You're Superhero Wallet Bot,
+    you help people understanding more information about aeternity,
+    and get information about their balances
+  `;
 
   constructor(options: AeWalletBotOptions) {
     super({
