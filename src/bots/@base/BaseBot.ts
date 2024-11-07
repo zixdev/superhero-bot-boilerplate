@@ -52,7 +52,7 @@ export abstract class BaseBot {
     await this.priceRatesHelper.preloadProtocolRates(this.protocol);
   }
 
-  async onMessage(sender: ISender, message: IMessage): Promise<string | null> {
+  async onMessage(sender: ISender, message: IMessage, onReply = (reply: string) => { }): Promise<void> {
     /**
      * Execute commands first
      */
@@ -71,7 +71,7 @@ export abstract class BaseBot {
             // generic error message
             return "Ops, looks like something went wrong. Please try again and if it does not work, ask the team for some help.";
           });
-        if (answer) return answer;
+        if (answer) return onReply(answer);
       }
     }
     /**
@@ -82,7 +82,7 @@ export abstract class BaseBot {
     if (userState) {
       const command = this.commands[userState.command];
       if (command) {
-        return command
+        return onReply(await command
           .handleStep(this, sender, message, userState)
           .catch((error: Error) => {
             if (error instanceof UserFacingError) return error.message;
@@ -90,16 +90,12 @@ export abstract class BaseBot {
             console.error(error.stack);
             // generic error message
             return "Ops, looks like something went wrong. Please try again and if it does not work, ask the team for some help.";
-          });
+          }));
       } else {
-        return `Unknown interaction,
-          Please start fresh! use <b>/help</b> to see the available commands`;
+        return onReply(`Unknown interaction,
+          Please start fresh! use <b>/help</b> to see the available commands`);
       }
     }
-    /**
-     * Ignore the message
-     */
-    return null;
   }
 
   async onRoomJoin(
