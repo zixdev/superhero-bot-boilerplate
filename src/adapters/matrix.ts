@@ -151,10 +151,13 @@ export class MatrixAdapter extends BaseAdapter {
         roomName: roomMetadata.roomName,
       };
 
-      this.bot.onMessage(sender, message, (reply) => {
+      this.client.setTyping(roomId, true);
+      await this.bot.onMessage(sender, message, (reply) => {
         this.client.replyHtmlNotice(roomId, event, reply);
+        this.client.setTyping(roomId, false);
         return reply;
       });
+      this.client.setTyping(roomId, false);
     });
 
     this.client.on("room.join", async (roomId: string, event: IChatEvent) => {
