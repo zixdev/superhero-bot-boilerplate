@@ -55,7 +55,8 @@ export abstract class BaseBot {
   async onMessage(
     sender: ISender, 
     message: IMessage, 
-    onReply = (reply: string) => reply
+    onReply = (reply: string) => reply,
+    onTyping = (isTyping: boolean) => {},
   ): Promise<string | null> {
     /**
      * Execute commands first

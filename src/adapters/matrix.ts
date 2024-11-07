@@ -124,8 +124,10 @@ export class MatrixAdapter extends BaseAdapter {
              */
             const id = user.replace(/<a href=".*?#\/user\//, "").split('">')[0];
 
-            const address = VerifiedAccounts.getVerifiedAccountOrException(id);
-            messageBody = messageBody.replace(name, address);
+            const address = VerifiedAccounts.getVerifiedAccountOrUndefined(id)
+            if (address) {
+              messageBody = messageBody.replace(name, address);
+            }
 
             taggedAccounts.push({
               name,
@@ -151,13 +153,18 @@ export class MatrixAdapter extends BaseAdapter {
         roomName: roomMetadata.roomName,
       };
 
-      this.client.setTyping(roomId, true);
-      await this.bot.onMessage(sender, message, (reply) => {
-        this.client.replyHtmlNotice(roomId, event, reply);
-        this.client.setTyping(roomId, false);
-        return reply;
-      });
-      this.client.setTyping(roomId, false);
+      this.bot.onMessage(
+        sender,
+        message,
+        (reply) => {
+          this.client.replyHtmlNotice(roomId, event, reply);
+          this.client.setTyping(roomId, false);
+          return reply;
+        },
+        (isTyping) => {
+          this.client.setTyping(roomId, isTyping);
+        }
+      );
     });
 
     this.client.on("room.join", async (roomId: string, event: IChatEvent) => {
