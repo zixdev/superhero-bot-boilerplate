@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 
 import { VerifiedAccounts } from "./backend/VerifiedAccounts";
 import Aeternity from "./backend/Aeternity";
+import { TelegramAdapter } from "./adapters/telegram";
 
 process.on("unhandledRejection", (reason: Error | string | undefined) => {
   const error = reason instanceof Error ? reason : new Error(reason);
@@ -39,6 +40,10 @@ async function start() {
   }
 
   // setup adapters
+  const walletBotTelegramAdapter = new TelegramAdapter({
+    token: process.env.TELEGRAM_WALLET_BOT_TOKEN,
+  });
+
   const walletBotMatrixAdapter = new MatrixAdapter({
     username: process.env.MATRIX_WALLET_BOT_USERNAME,
     accessToken: process.env.MATRIX_WALLET_BOT_ACCESS_TOKEN,
@@ -46,6 +51,8 @@ async function start() {
   });
 
   // init bots
+  
+  await walletBotTelegramAdapter.init();
   await walletBotMatrixAdapter.init();
 
   // init backends
@@ -57,7 +64,7 @@ async function start() {
 
   // setup bots that communicate with the user
   const aeWalletBot = new AeWalletBot({
-    chatAdapters: [walletBotMatrixAdapter],
+    chatAdapters: [walletBotMatrixAdapter, walletBotTelegramAdapter],
     aeSdk,
   });
 
