@@ -65,6 +65,9 @@ export class TelegramAdapter extends BaseAdapter {
       // const message = ctx.message;
       console.log("message", message);
       console.log("========");
+      if (!this.bot) {
+        return;
+      }
       
       this.bot.onMessage(
         sender,
@@ -79,7 +82,9 @@ export class TelegramAdapter extends BaseAdapter {
           return reply;
         },
         (isTyping) => {
-          ctx.replyWithChatAction("typing");
+          if (isTyping) {
+            ctx.replyWithChatAction("typing");
+          }
         },
       );
     });
