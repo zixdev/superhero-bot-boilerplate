@@ -29,6 +29,20 @@ export class TelegramAdapter extends BaseAdapter {
     this.token = token;
   }
 
+  connectBot(bot: BaseBot): this {
+    this.bot = bot;
+    const commands = [];
+
+    Object.values(bot.commands).forEach((command) => {
+      commands.push({
+        command: command.name,
+        description: command.description,
+      });
+    });
+    this.client.api.setMyCommands(commands);
+    return this;
+  }
+
   async init({ autoJoin }: { autoJoin?: boolean } = { autoJoin: true }) {
     this.client.command("start", async (ctx) => {
       await ctx.reply("Welcome!");
