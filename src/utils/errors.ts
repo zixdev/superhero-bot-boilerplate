@@ -38,13 +38,15 @@ export class MultipleTokensFoundError extends UserFacingError {
     }[],
     token: string,
   ) {
-    super(`<p>I see you own multiple ${token} tokens in your Superhero Wallet. Please reply with the number of the option you want to transfer from:</p>
-           <ol>
-           ${tokenListInaction
-             .map(
-               ({ contractId, symbol }) => `<li>${symbol} ${contractId}</li>`,
-             )
-             .join("")}</ol>`);
+    super(
+      `I see you own multiple ${token} tokens in your Superhero Wallet. Please reply with the number of the option you want to transfer from:
+      ${tokenListInaction
+        .map(
+          ({ contractId, symbol }) => `${symbol} ${contractId}`,
+        )
+        .join("")}`,
+    );
+
 
     Object.setPrototypeOf(this, NoTokenFoundError.prototype);
   }

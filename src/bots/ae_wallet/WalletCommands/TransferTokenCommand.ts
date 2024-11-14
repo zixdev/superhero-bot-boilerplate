@@ -209,13 +209,9 @@ export class TransferTokenCommand extends BotCommand {
       ? `, wallet address: ${recipientAddress}`
       : "";
 
-    // Construct confirmation message
-    // Construct confirmation message with named anchor text
-    return `
-      <p>👍 Sure thing! Please confirm the transaction through the link provided,
-      and I will immediately initiate the transfer to ${recipient}${recipientInfo}:</p>
-      <p><a href="${signTransactionUrl}" target="_blank">Confirm Transaction</a> 🔗</p>
-      `;
+    
+    return `👍 Sure thing! Please confirm the transaction through the link provided, and I will immediately initiate the transfer to ${recipient}${recipientInfo}:
+      [Confirm Transaction](${signTransactionUrl}) 🔗`;
   }
 
   private async handleTokenTransfer(
@@ -314,10 +310,9 @@ export class TransferTokenCommand extends BotCommand {
       : "";
 
     // Construct confirmation message
-    const confirmationMessage = `
-      <p>👍 Sure thing! Please confirm the transaction through the link provided,
-      and I will immediately initiate the transfer to ${recipient}${recipientInfo}:</p>
-      <p><a href="${signTransactionUrl}" target="_blank">Confirm Transaction</a> 🔗</p>`;
+    const confirmationMessage = `👍 Sure thing! Please confirm the transaction through the link provided, 
+      and I will immediately initiate the transfer to ${recipient}${recipientInfo}:
+      [Confirm Transaction](${signTransactionUrl}) 🔗`;
 
     return confirmationMessage;
   }

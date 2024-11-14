@@ -17,8 +17,9 @@ class ConnectWalletError extends UserFacingError {
   constructor(message: string) {
     super(
       message +
-        "<br /><br />To connect your wallet, please use this format: <b>/connect “address”</b>.<br />For example: /connect ak_xyz",
+        "\n\nTo connect your wallet, please use this format: /connect “address”. For example: /connect ak_xyz",
     );
+  
 
     Object.setPrototypeOf(this, UserFacingError.prototype);
   }
@@ -92,9 +93,10 @@ export class ConnectWalletCommand extends BotCommand {
       rawTx,
       `ae-wallet-bot/verified-wallet/${id}`,
     );
+
     return `
-      <p>🔗 Sure! To connect the wallet, please sign the transaction link below to connect your Superhero Wallet with me. 🦸‍♂️</p>
-      <p><a href="${signTransactionUrl}" target="_blank">Sign Transaction</a></p>
+      🔗 Sure! To connect the wallet, please sign the transaction link below to connect your Superhero Wallet with me. 🦸‍♂️
+      [Sign Transaction](${signTransactionUrl})
     `;
   }
 }

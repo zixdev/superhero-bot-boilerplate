@@ -62,8 +62,8 @@ export class DisconnectWalletCommand extends BotCommand {
       `ae-wallet-bot/remove-verified-wallet/${id}`,
     );
     return `
-      <p>🔗 Sure! To remove the previous connection, please sign the transaction using the link below:</p>
-      <p><a href="${signTransactionUrl}" target="_blank">Remove Connection</a></p>
+      🔗 Sure! To remove the previous connection, please sign the transaction using the link below:
+        [Remove Connection](${signTransactionUrl})
     `;
   }
 }
