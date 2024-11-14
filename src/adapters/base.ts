@@ -1,3 +1,4 @@
+import showdown from "showdown";
 import { BaseBot } from "../bots/@base";
 
 export interface BaseAdapterOptions {
@@ -7,9 +8,10 @@ export interface BaseAdapterOptions {
 
 export abstract class BaseAdapter {
   bot: BaseBot;
+  markdownConverter: showdown.Converter;
 
   constructor(options: BaseAdapterOptions) {
-    //
+    this.markdownConverter = new showdown.Converter();
   }
 
   connectBot(bot: BaseBot) {

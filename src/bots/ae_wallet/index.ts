@@ -54,15 +54,11 @@ export class AeWalletBot extends OpenAIAssistantBot {
     metaData: IRoomMetadata,
   ): Promise<string | null> {
     if (metaData.isDirect) {
-      return `<p>Hi there! 👋 Welcome to the Wallet Bot! I'm your trusted DeFi companion, here to simplify your crypto experience! With my superpowers, I can securely transfer your tokens, check your balance, and more! </p>
-
-      <p>But before we dive in, let's get you set up:</p>
-
-      <ol>
-        <li>First, download the Superhero Wallet: <a href="https://wallet.superhero.com" target="_blank" style="color: #1D9BF0; text-decoration: none;">Superhero Wallet</a> 📥</li>
-        <li>After you have downloaded the Wallet and created an account, connect your Superhero Wallet to me.</li>
-        <li>Type: <code>/connect "your wallet address"</code><br>For example: <code>/connect ak_xyz</code></li>
-      </ol>`;
+      return `Hi there! 👋 Welcome to the Wallet Bot! I'm your trusted DeFi companion, here to simplify your crypto experience! With my superpowers, I can securely transfer your tokens, check your balance, and more! 
+      \n\nBut before we dive in, let's get you set up: 
+      \n\n1. First, download the Superhero Wallet: [Superhero Wallet](https://wallet.superhero.com) 📥 
+      \n2. After you have downloaded the Wallet and created an account, connect your Superhero Wallet to me. 
+      \n3. Type: \`/connect "your wallet address"\` \nFor example: \`/connect ak_xyz\``;
     }
     return null;
   }

@@ -1,7 +1,6 @@
 import OpenAI from "openai";
 import { FunctionTool } from "openai/resources/beta/assistants";
 import { RunCreateParamsNonStreaming } from "openai/resources/beta/threads/runs/runs";
-import showdown from 'showdown';
 import { VerifiedAccounts } from "../../backend/VerifiedAccounts";
 import { OPENAI_API_KEY } from "../../config";
 import { IMessage, ISender } from "../../types";
@@ -10,7 +9,6 @@ import { BaseBot, BaseBotOptions } from "./BaseBot";
 
 export abstract class OpenAIAssistantBot extends BaseBot {
   openAI: OpenAI;
-  markdownConverter: showdown.Converter;
 
   assistantId: string;
   assistantInstructions: string;
@@ -21,8 +19,6 @@ export abstract class OpenAIAssistantBot extends BaseBot {
     this.openAI = new OpenAI({
       apiKey: OPENAI_API_KEY,
     });
-
-    this.markdownConverter = new showdown.Converter();
   }
 
   getAssistantTools(): Array<FunctionTool> {
@@ -125,7 +121,9 @@ export abstract class OpenAIAssistantBot extends BaseBot {
       for (const reply of messages.data.reverse()) {
         console.log('AI REPLU::', JSON.stringify(reply, null, 2))
         console.log(`${reply.role} > ${reply.content[0].text.value}`);
-        onReply(this.markdownConverter.makeHtml(reply.content[0].text.value));
+        onReply(
+          reply.content[0].text.value
+        );
         break;
       }
     } else if (run.status === 'requires_action' && run.required_action) {
@@ -136,14 +134,18 @@ export abstract class OpenAIAssistantBot extends BaseBot {
       for (const tool_call of tool_calls) {
         const args = JSON.parse(tool_call.function.arguments);
 
-        const reply = await this.commands[tool_call.function.name].handle(
-          this,
-          sender,
-          message,
-          args,
-          {}
-        )
-
+        let reply = null;
+        try {
+          reply = await this.commands[tool_call.function.name].handle(
+            this,
+            sender,
+            message,
+            args,
+            {}
+          )
+        } catch (error) {
+          reply = error.message;
+        }
         if (reply) {
           await onReply(reply);
         }

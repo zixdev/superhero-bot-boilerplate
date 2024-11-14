@@ -1,11 +1,7 @@
 import { AutojoinRoomsMixin, MatrixAuth, MatrixClient } from "matrix-bot-sdk";
-import OpenAI from 'openai';
 
 import { VerifiedAccounts } from "../backend/VerifiedAccounts";
-import {
-  MATRIX_BOT_HOME_SERVER_URL,
-  OPENAI_API_KEY
-} from "../config";
+import { MATRIX_BOT_HOME_SERVER_URL } from "../config";
 import {
   getRoomMetadata,
   IMDirect,
@@ -25,7 +21,6 @@ type MatrixAdapterOptions = BaseAdapterOptions & {
 export class MatrixAdapter extends BaseAdapter {
   client: MatrixClient;
   options: MatrixAdapterOptions;
-
 
   constructor(options: MatrixAdapterOptions) {
     super(options);
@@ -124,7 +119,7 @@ export class MatrixAdapter extends BaseAdapter {
              */
             const id = user.replace(/<a href=".*?#\/user\//, "").split('">')[0];
 
-            const address = VerifiedAccounts.getVerifiedAccountOrUndefined(id)
+            const address = VerifiedAccounts.getVerifiedAccountOrUndefined(id);
             if (address) {
               messageBody = messageBody.replace(name, address);
             }
@@ -157,13 +152,14 @@ export class MatrixAdapter extends BaseAdapter {
         sender,
         message,
         (reply) => {
-          this.client.replyHtmlNotice(roomId, event, reply);
+          const htmlContent = this.markdownConverter.makeHtml(reply);
+          this.client.replyHtmlNotice(roomId, event, htmlContent);
           this.client.setTyping(roomId, false);
           return reply;
         },
         (isTyping) => {
           this.client.setTyping(roomId, isTyping);
-        }
+        },
       );
     });
 
