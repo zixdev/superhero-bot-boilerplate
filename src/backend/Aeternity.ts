@@ -75,7 +75,7 @@ class Aex9Token extends BaseContract {
 
 export type VerifiedAccountsMap = Map<string, Encoded.AccountAddress>;
 
-class VerifiedAccounts extends BaseContract {
+class AeVerifiedAccounts extends BaseContract {
   public async getAllVerifiedAccounts() {
     return this.contract
       .verified_accounts()
@@ -91,7 +91,7 @@ class VerifiedAccounts extends BaseContract {
 
 export default class Aeternity {
   private static aeSdk: AeSdk;
-  private static _verifiedAccounts: VerifiedAccounts;
+  private static _verifiedAccounts: AeVerifiedAccounts;
   private static _aex9TokenMap: Map<Encoded.ContractAddress, Aex9Token> =
     new Map();
 
@@ -184,7 +184,7 @@ export default class Aeternity {
       contract.$options.address,
     );
 
-    this._verifiedAccounts = new VerifiedAccounts(contract);
+    this._verifiedAccounts = new AeVerifiedAccounts(contract);
     return this._verifiedAccounts;
   }
 }
