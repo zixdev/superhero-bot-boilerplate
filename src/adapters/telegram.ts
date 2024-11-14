@@ -1,7 +1,8 @@
-import { Bot } from "grammy";
+import { Bot, InlineKeyboard } from "grammy";
 
 import { IMessage, ISender } from "../types";
 import { BaseAdapter } from "./base";
+import { BaseBot } from "src/bots/@base";
 
 type TelegramAdapterOptions = {
   token?: string;
@@ -47,6 +48,7 @@ export class TelegramAdapter extends BaseAdapter {
     this.client.command("start", async (ctx) => {
       await ctx.reply("Welcome!");
     });
+
     this.client.on("message", (ctx) => {
       const sender: ISender = {
         id: ctx.message.from.id.toString(),
@@ -56,8 +58,6 @@ export class TelegramAdapter extends BaseAdapter {
       const message: IMessage = {
         chatId: ctx.message.from.id.toString(), // TODO
         text: ctx.message.text,
-        // taggedAccounts,
-        // roomName: roomMetadata.roomName,
       };
       console.log("========");
       console.log("ctx", ctx);
@@ -65,25 +65,25 @@ export class TelegramAdapter extends BaseAdapter {
       // const message = ctx.message;
       console.log("message", message);
       console.log("========");
-      ctx.replyWithChatAction('typing')
+      
       this.bot.onMessage(
         sender,
         message,
         (reply) => {
           console.log("========== BOT REPLY ==========");
           console.log(reply);
-          ctx.reply(reply);
-          // ctx.reply(reply, { parse_mode: "HTML" });
-          this.client.api.sendMessage(ctx.message.chat.id, reply, { parse_mode: "HTML" });
-          // this.client.replyHtmlNotice(roomId, event, reply);
-          // this.client.setTyping(roomId, false);
+          ctx.reply(reply, {
+            parse_mode: "Markdown",
+          });
+
           return reply;
         },
         (isTyping) => {
-          // this.client.setTyping(roomId, isTyping);
+          ctx.replyWithChatAction("typing");
         },
       );
     });
+
     this.client.start();
 
     console.log("TelegramBot started");
