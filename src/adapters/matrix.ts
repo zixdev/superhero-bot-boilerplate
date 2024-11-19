@@ -1,4 +1,8 @@
-import { AutojoinRoomsMixin, MatrixAuth, MatrixClient } from "matrix-bot-sdk";
+import {
+  AutojoinRoomsMixin,
+  MatrixAuth,
+  MatrixClient
+} from "matrix-bot-sdk";
 
 import { VerifiedAccounts } from "../backend/VerifiedAccounts";
 import { MATRIX_BOT_HOME_SERVER_URL } from "../config";
@@ -90,7 +94,6 @@ export class MatrixAdapter extends BaseAdapter {
       }
 
       const currentUserId = await this.client.getUserId();
-
       if (event["sender"] === currentUserId) {
         return;
       }
@@ -100,36 +103,39 @@ export class MatrixAdapter extends BaseAdapter {
       console.info("room.message->event ::", event);
       const taggedAccounts: IAccount[] = [];
 
+      let users = []
       if (event["content"]["formatted_body"]) {
         // parse users using regex
-        const users = event["content"]["formatted_body"].match(
+        users = event["content"]["formatted_body"].match(
           /<a href=".*?">(.*?)<\/a>/g,
         );
-        if (users?.length) {
-          // map users and extract the name and id that is after /user/@ from the href
-          for (const user of users) {
-            const [name] = user
-              .replace(/<a href=".*?">/, "")
-              .replace(/<\/a>/, "")
-              .split("/user/@");
+      }
 
-            /**
-             * need to extract @tsvetan:superhero.com
-             * from <a href="https://chat.superhero.com/#/user/@tsvetan:superhero.com">
-             */
-            const id = user.replace(/<a href=".*?#\/user\//, "").split('">')[0];
+      if (users?.length) {
+        // map users and extract the name and id that is after /user/@ from the href
+        for (const user of users) {
+          const [name] = user
+            .replace(/<a href=".*?">/, "")
+            .replace(/<\/a>/, "")
+            .split("/user/@");
 
-            const address = VerifiedAccounts.getVerifiedAccountOrUndefined(id);
-            if (address) {
-              messageBody = messageBody.replace(name, address);
-            }
+          /**
+           * need to extract @tsvetan:superhero.com
+           * from <a href="https://chat.superhero.com/#/user/@tsvetan:superhero.com">
+           */
+          const id = user.replace(/<a href=".*?#\/user\//, "").split('">')[0];
 
-            taggedAccounts.push({
-              name,
-              id,
-              address,
-            });
+          const address = VerifiedAccounts.getVerifiedAccountOrUndefined(id);
+
+          if (address) {
+            messageBody = messageBody.replace(name, address);
           }
+
+          taggedAccounts.push({
+            name,
+            id,
+            address,
+          });
         }
       }
 
@@ -166,6 +172,7 @@ export class MatrixAdapter extends BaseAdapter {
     this.client.on("room.join", async (roomId: string, event: IChatEvent) => {
       // save meta data
       const metaData = await this.getMetaData(roomId);
+      console.log("room.join event", event);
 
       const reply = await this.bot.onRoomJoin(roomId, event, metaData);
       if (reply) {
