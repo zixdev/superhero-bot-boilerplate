@@ -39,32 +39,39 @@ async function start() {
     throw new Error("Please set MATRIX_WALLET_BOT_USERNAME");
   }
 
-  // setup adapters
-  const walletBotTelegramAdapter = new TelegramAdapter({
-    token: process.env.TELEGRAM_WALLET_BOT_TOKEN,
-  });
-
-  const walletBotMatrixAdapter = new MatrixAdapter({
-    username: process.env.MATRIX_WALLET_BOT_USERNAME,
-    accessToken: process.env.MATRIX_WALLET_BOT_ACCESS_TOKEN,
-    password: process.env.MATRIX_WALLET_BOT_PASSWORD,
-  });
-
-  // init bots
-  
-  await walletBotTelegramAdapter.init();
-  await walletBotMatrixAdapter.init();
-
   // init backends
   const aeSdk = await Aeternity.init();
   await VerifiedAccounts.init(); // depends on token balance scanner
 
-  // setup listeners
-  walletBotMatrixAdapter.setupListeners();
+  const chatAdapters = [];
+
+  // setup adapters
+  if (process.env.TELEGRAM_WALLET_BOT_TOKEN) {
+    const walletBotTelegramAdapter = new TelegramAdapter({
+      token: process.env.TELEGRAM_WALLET_BOT_TOKEN,
+    });
+    await walletBotTelegramAdapter.init();
+    chatAdapters.push(walletBotTelegramAdapter);
+  }
+
+  if (process.env.MATRIX_WALLET_BOT_ACCESS_TOKEN) {
+    const walletBotMatrixAdapter = new MatrixAdapter({
+      username: process.env.MATRIX_WALLET_BOT_USERNAME,
+      accessToken: process.env.MATRIX_WALLET_BOT_ACCESS_TOKEN,
+      password: process.env.MATRIX_WALLET_BOT_PASSWORD,
+    });
+    await walletBotMatrixAdapter.init();
+
+    // setup listeners
+    walletBotMatrixAdapter.setupListeners();
+    chatAdapters.push(walletBotMatrixAdapter);
+  }
+
+  // init bots
 
   // setup bots that communicate with the user
   const aeWalletBot = new AeWalletBot({
-    chatAdapters: [walletBotMatrixAdapter, walletBotTelegramAdapter],
+    chatAdapters,
     aeSdk,
   });
 
