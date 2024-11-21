@@ -86,6 +86,7 @@ export abstract class OpenAIAssistantBot extends BaseBot {
       sender.id.toString(),
     );
     const threadId = await this.getRoomThreadId(message.chatId);
+    
     const assistant = await this.getAssistant(
       senderWalletAddress,
     );
@@ -118,9 +119,8 @@ export abstract class OpenAIAssistantBot extends BaseBot {
           limit: 1,
         }
       );
+
       for (const reply of messages.data.reverse()) {
-        console.log('AI REPLU::', JSON.stringify(reply, null, 2))
-        console.log(`${reply.role} > ${reply.content[0].text.value}`);
         onReply(
           reply.content[0].text.value
         );

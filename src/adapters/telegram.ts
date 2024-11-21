@@ -1,4 +1,4 @@
-import { Bot, InlineKeyboard } from "grammy";
+import { Bot } from "grammy";
 
 import { IMessage, ISender } from "../types";
 import { BaseAdapter } from "./base";
@@ -14,6 +14,7 @@ export class TelegramAdapter extends BaseAdapter {
 
   constructor(token: TelegramAdapterOptions) {
     super(token);
+
     if (!token) {
       throw new Error(
         "Telegram bot token is undefined, please set TELEGRAM_BOT_TOKEN",
@@ -26,7 +27,7 @@ export class TelegramAdapter extends BaseAdapter {
         "No access token provided through environment. Please PERMANENTLY store the access token in an the environment variable.",
       );
     }
-
+  
     this.token = token;
   }
 
@@ -41,52 +42,46 @@ export class TelegramAdapter extends BaseAdapter {
       });
     });
     this.client.api.setMyCommands(commands);
+
     return this;
   }
 
   async init({ autoJoin }: { autoJoin?: boolean } = { autoJoin: true }) {
-    this.client.command("start", async (ctx) => {
-      await ctx.reply("Welcome!");
-    });
 
-    this.client.on("message", (ctx) => {
+    this.client.on("message", async (ctx) => {
+      console.log("first chatId", ctx.message.chat.id);
       const sender: ISender = {
-        id: ctx.message.from.id.toString(),
+        id: ctx.message.chat.id.toString(),
         name: ctx.message.from.username || ctx.message.from.first_name,
         isDirect: true,
       };
       const message: IMessage = {
-        chatId: ctx.message.from.id.toString(), // TODO
-        text: ctx.message.text,
+        chatId: ctx.message.chat.id.toString(), // TODO
+        text: ctx.message.text || "",
       };
-      console.log("========");
-      console.log("ctx", ctx);
-      console.log("========");
-      // const message = ctx.message;
-      console.log("message", message);
-      console.log("========");
+
       if (!this.bot) {
         return;
       }
-      
-      this.bot.onMessage(
-        sender,
-        message,
-        (reply) => {
-          console.log("========== BOT REPLY ==========");
-          console.log(reply);
-          ctx.reply(reply, {
-            parse_mode: "Markdown",
-          });
 
-          return reply;
-        },
-        (isTyping) => {
-          if (isTyping) {
-            ctx.replyWithChatAction("typing");
-          }
-        },
-      );
+      if (message.text) {
+        this.bot.onMessage(
+          sender,
+          message,
+          (reply) => {
+            ctx.reply(reply, {
+              parse_mode: "Markdown",
+            });
+
+            return reply;
+          },
+          (isTyping) => {
+            if (isTyping) {
+              ctx.replyWithChatAction("typing");
+            }
+          },
+        );
+      }
     });
 
     this.client.start();
@@ -95,7 +90,7 @@ export class TelegramAdapter extends BaseAdapter {
     return this.client;
   }
 
-  sendMessage(text: string, chatId?: string): Promise<void> {
+  async sendMessage(text: string, chatId?: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }
